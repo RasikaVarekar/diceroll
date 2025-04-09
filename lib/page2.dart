@@ -8,10 +8,10 @@ class Page2 extends StatelessWidget {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: Text("Page 2"),
+          title: const Text("Page 2"),
           backgroundColor: Colors.blueAccent,
         ),
-        body: Center(
+        body: const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             // crossAxisAlignment: CrossAxisAlignment.stretch,
