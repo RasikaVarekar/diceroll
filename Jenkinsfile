@@ -57,12 +57,10 @@ pipeline {
             }
         }
 
-        stage('Build Release APK') {
+       stage('Build Release APK') {
             steps {
-                bat """
-                    flutter clean
-                    flutter build apk --release
-                """
+                bat 'flutter clean'
+                bat 'flutter build apk --release'
             }
         }
     }
