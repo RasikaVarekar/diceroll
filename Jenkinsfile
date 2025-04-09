@@ -17,11 +17,10 @@ pipeline {
         }
 
         stage('Flutter Version') {
-    steps {
-        bat 'flutter --version'
-    }
-}
-
+            steps {
+                bat 'flutter --version'
+            }
+        }
 
         stage('Flutter Doctor') {
             steps {
@@ -42,21 +41,28 @@ pipeline {
         }
 
         stage('Analyze Code') {
-    steps {
-        script {
-            // Run analysis and ignore non-zero exit code to avoid pipeline failure due to warnings
-            def result = bat(script: 'flutter analyze', returnStatus: true)
-            if (result != 0) {
-                echo "Flutter analyze finished with warnings."
+            steps {
+                script {
+                    def result = bat(script: 'flutter analyze', returnStatus: true)
+                    if (result != 0) {
+                        echo "Flutter analyze finished with warnings."
+                    }
+                }
             }
         }
-    }
-}
-
 
         stage('Run Tests') {
             steps {
                 bat 'flutter test'
+            }
+        }
+
+        stage('Build Release APK') {
+            steps {
+                bat """
+                    flutter clean
+                    flutter build apk --release
+                """
             }
         }
     }
@@ -67,6 +73,9 @@ pipeline {
         }
         success {
             echo '✅ Flutter build pipeline completed successfully!'
+
+            // Archive the built APK
+            archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/app-release.apk', fingerprint: true
         }
         failure {
             echo '❌ Flutter build pipeline failed!'
