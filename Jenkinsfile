@@ -90,22 +90,36 @@ pipeline {
             def jobName = env.JOB_NAME
             def buildNumber = env.BUILD_NUMBER
 
-            echo "Job Name: $jobName"
-            echo "Build Number: $buildNumber"
+            // Print job info
+            echo "Job Name: ${jobName}"
+            echo "Build Number: ${buildNumber}"
 
             withCredentials([usernamePassword(
-                credentialsId: '8c658dd0-a24f-419e-9ea6-dc6d1a7e2740',
+                credentialsId: '1bb08ca6-f3cb-4ec7-953f-c3f7a93401ac',
                 usernameVariable: 'DOCKER_HUB_USER',
                 passwordVariable: 'DOCKER_HUB_PASSWORD'
             )]) {
-                bat "chmod +x ./jenkins-plugin-model/ci/04-push.sh"
-                bat "./jenkins-plugin-model/ci/04-push.sh ${buildNumber}"
+                // Run the Windows batch script
+                bat '''
+                echo Logging in to Docker...
+                docker login -u %DOCKER_HUB_USER% -p %DOCKER_HUB_PASSWORD%
+                
+                echo Tagging image...
+                docker tag rasikavarekar1403/flutter-diceroll:latest rasikavarekar1403/flutter-diceroll:%BUILD_NUMBER%
+                
+                echo Pushing image with latest tag...
+                docker push rasikavarekar1403/flutter-diceroll:latest
+                
+                echo Pushing image with build number tag...
+                docker push rasikavarekar1403/flutter-diceroll:%BUILD_NUMBER%
+                '''
             }
 
-            echo "Build Completed - Job Name: ${jobName}  --  Build Number: ${buildNumber}"
+            echo "✅ Docker image push completed - Job Name: ${jobName}, Build Number: ${buildNumber}"
         }
     }
-        }
+}
+
 }
 
 
