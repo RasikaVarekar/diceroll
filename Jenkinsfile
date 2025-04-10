@@ -6,9 +6,11 @@ pipeline {
         JAVA_HOME = 'C:/Program Files/Java/jdk-17'
         ANDROID_SDK_ROOT = 'C:/Users/Admin/AppData/Local/Android/Sdk'
         IMAGE_NAME = 'rasikavarekar1403/flutter-diceroll'
+        DOCKER_HOME = 'C:/Program Files/Docker/Docker/resources/bin'
         DOCKERHUB_CREDENTIALS = credentials('8c658dd0-a24f-419e-9ea6-dc6d1a7e2740')
 
-        PATH = "${FLUTTER_HOME}/bin;${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin;${ANDROID_SDK_ROOT}/platform-tools;${JAVA_HOME}/bin;${env.PATH}"
+        PATH = "${DOCKER_HOME};${FLUTTER_HOME}/bin;${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin;${ANDROID_SDK_ROOT}/platform-tools;${JAVA_HOME}/bin;${env.PATH}"
+
     }
 
     stages {
