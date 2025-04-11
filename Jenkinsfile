@@ -67,61 +67,42 @@ pipeline {
             }
         }
 
-        // stage('Build Docker Image') {
-        //     steps {
-        //         script {
-        //             // Create a Dockerfile dynamically if it doesn't exist
-        //             writeFile file: 'Dockerfile', text: '''
-        //             FROM busybox
-        //             LABEL maintainer="Rasika"
-        //             COPY build/app/outputs/flutter-apk/app-release.apk /app/
-        //             CMD ["echo", "Flutter APK image created."]
-        //             '''.stripIndent()
-
-        //             bat "docker build -t ${env.IMAGE_NAME}:latest ."
-        //         }
-        //     }
-        // }
-
-        stage('Push Docker Image') {
-    steps {
-        script {
-            // Get the job name and build number
-            def jobName = env.JOB_NAME
-            def buildNumber = env.BUILD_NUMBER
-
-            // Print job info
-            echo "Job Name: ${jobName}"
-            echo "Build Number: ${buildNumber}"
-
-            withCredentials([usernamePassword(
-                credentialsId: '1bb08ca6-f3cb-4ec7-953f-c3f7a93401ac',
-                usernameVariable: 'DOCKER_HUB_USER',
-                passwordVariable: 'DOCKER_HUB_PASSWORD'
-            )]) {
-                // Run the Windows batch script
-                bat '''
-                echo Logging in to Docker...
-                docker login -u %DOCKER_HUB_USER% -p %DOCKER_HUB_PASSWORD%
-                
-                echo Tagging image...
-                docker tag rasikavarekar1403/flutter-diceroll:latest rasikavarekar1403/flutter-diceroll:%BUILD_NUMBER%
-                
-                echo Pushing image with latest tag...
-                docker push rasikavarekar1403/flutter-diceroll:latest
-                
-                echo Pushing image with build number tag...
-                docker push rasikavarekar1403/flutter-diceroll:%BUILD_NUMBER%
-                '''
+        stage('Docker Build & Push') {
+            when {
+                expression {
+                    fileExists('build/app/outputs/flutter-apk/app-release.apk')
+                }
             }
+            steps {
+                script {
+                    // Create Dockerfile dynamically
+                    writeFile file: 'Dockerfile', text: '''
+                    FROM nginx:alpine
+                    WORKDIR /usr/share/nginx/html
+                    COPY build/app/outputs/flutter-apk/app-release.apk .
+                    RUN echo "<html><body><h2>Dice Roll App</h2><a href='app-release.apk' download>Download APK</a></body></html>" > index.html
+                    EXPOSE 80
+                    CMD ["nginx", "-g", "daemon off;"]
+                    '''.stripIndent()
 
-            echo "✅ Docker image push completed - Job Name: ${jobName}, Build Number: ${buildNumber}"
+                    withCredentials([usernamePassword(
+                        credentialsId: '8c658dd0-a24f-419e-9ea6-dc6d1a7e2740',
+                        usernameVariable: 'DOCKER_HUB_USER',
+                        passwordVariable: 'DOCKER_HUB_PASSWORD'
+                    )]) {
+                        def tag = "${env.IMAGE_NAME}:${env.BUILD_NUMBER}"
+                        bat "docker build -t ${env.IMAGE_NAME}:latest ."
+                        bat "docker tag ${env.IMAGE_NAME}:latest ${tag}"
+                        bat "docker login -u %DOCKER_HUB_USER% -p %DOCKER_HUB_PASSWORD%"
+                        bat "docker push ${env.IMAGE_NAME}:latest"
+                        bat "docker push ${tag}"
+                    }
+
+                    echo "✅ Docker image build & push successful!"
+                }
+            }
         }
     }
-}
-
-}
-
 
     post {
         always {
