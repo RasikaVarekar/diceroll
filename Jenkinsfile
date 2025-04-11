@@ -79,11 +79,13 @@ pipeline {
                     writeFile file: 'Dockerfile', text: '''
                     FROM nginx:alpine
                     WORKDIR /usr/share/nginx/html
-                    COPY build/app/outputs/flutter-apk/app-release.apk .
-                    RUN echo "<html><body><h2>Dice Roll App</h2><a href='app-release.apk' download>Download APK</a></body></html>" > index.html
+                    COPY build/app/outputs/flutter-apk/app-release.apk ./app-release.apk
+                    RUN apk add zip && zip app-release.zip app-release.apk && \
+                    echo "<html><body><h2>Dice Roll App</h2><a href='app-release.zip' download>Download APK</a></body></html>" > index.html
                     EXPOSE 80
                     CMD ["nginx", "-g", "daemon off;"]
-                    '''.stripIndent()
+                    '''
+
 
                     withCredentials([usernamePassword(
                         credentialsId: '8c658dd0-a24f-419e-9ea6-dc6d1a7e2740',
